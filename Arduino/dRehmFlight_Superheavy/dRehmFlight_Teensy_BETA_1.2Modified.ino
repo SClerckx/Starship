@@ -206,6 +206,15 @@ float Kd_yaw = 0.00015*0.5;       //Yaw D-gain (be careful when increasing too h
 float Kd_posx = Kp_roll_rate * 3.14/180; //correct gain here
 float Kd_posy = Kp_pitch_rate * 3.14/180; //correct gain here
 
+// Code for first iteration of grid fin control
+float Kp_finRoll;
+float Kd_finRoll;
+float Ki_finRoll;
+
+float Kp_finPitch;
+float Kd_finPitch;
+float Ki_finPitch;
+
 
 //========================================================================================================================//
 //                                                     DECLARE PINS                                                       //                           
