@@ -246,8 +246,8 @@ const int servo7Pin = 12;
 const int servo8Pin = 28;
 const int servo9Pin = 29;
 // PWM Servo Aft Flap, left and right
-const int servo10Pin = 36;
-const int servo11Pin = 37;
+const int servo10Pin = 24;
+const int servo11Pin = 25;
 
 PWMServo servo1;  //create servo object to control a servo or ESC with PWM
 PWMServo servo2;
@@ -1691,6 +1691,14 @@ void printServoCommands() {
     Serial.print(s6_command_PWM);
     Serial.print(F(" s7_command: "));
     Serial.println(s7_command_PWM);
+    Serial.print(F(" s8_command: "));
+    Serial.println(s8_command_PWM);
+    Serial.print(F(" s9_command: "));
+    Serial.println(s9_command_PWM);
+    Serial.print(F(" s10_command: "));
+    Serial.println(s10_command_PWM);
+    Serial.print(F(" s11_command: "));
+    Serial.println(s11_command_PWM);
   }
 }
 
