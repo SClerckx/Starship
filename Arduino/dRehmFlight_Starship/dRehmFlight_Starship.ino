@@ -51,8 +51,8 @@ RcGroups 'jihlein' - IMU implementation overhaul + SBUS implementation
 //#define USE_SBUS_RX
 
 //Uncomment only one IMU
-#define USE_MPU6050_I2C //default
-//#define USE_MPU9250_SPI
+//#define USE_MPU6050_I2C //default
+#define USE_MPU9250_SPI
 
 //Uncomment only one full scale gyro range (deg/sec)
 #define GYRO_250DPS //default
@@ -87,7 +87,7 @@ RcGroups 'jihlein' - IMU implementation overhaul + SBUS implementation
   MPU6050 mpu6050;
 #elif defined USE_MPU9250_SPI
   #include "src/MPU9250/MPU9250.h"
-  MPU9250 mpu9250(SPI2,36);
+  MPU9250 mpu9250(SPI,10);//2,36
 #else
   #error No MPU defined... 
 #endif
