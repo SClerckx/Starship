@@ -25,6 +25,7 @@ MPU9250::MPU9250(TwoWire &bus,uint8_t address){
   _i2c = &bus; // I2C bus
   _address = address; // I2C address
   _useSPI = false; // set to use I2C
+  Serial.println('I2C');
 }
 
 /* MPU9250 object, input the SPI bus and chip select pin */
@@ -32,6 +33,7 @@ MPU9250::MPU9250(SPIClass &bus,uint8_t csPin){
   _spi = &bus; // SPI bus
   _csPin = csPin; // chip select pin
   _useSPI = true; // set to use SPI
+  Serial.println('SPI');
 }
 
 /* starts communication with the MPU-9250 */
@@ -43,6 +45,7 @@ int MPU9250::begin(){
     pinMode(_csPin,OUTPUT);
     // setting CS pin high
     digitalWrite(_csPin,HIGH);
+    Serial.println('High');
     // begin SPI communication
     _spi->begin();
   } else { // using I2C for communication

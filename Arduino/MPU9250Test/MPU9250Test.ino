@@ -2,7 +2,7 @@
 #include <SPI.h>      //SPI communication
 #if defined USE_MPU9250_SPI
   #include "src/MPU9250/MPU9250.h"
-  MPU9250 mpu9250(SPI,10);
+  MPU9250 mpu9250(SPI,0x68); //SPI, 10
 #endif
 
 #if defined USE_MPU6050_I2C
@@ -84,10 +84,12 @@ float MagScaleZ = 1.0;
 
 void setup() {
   Serial.begin(9600); //usb serial
+  Serial.println(SCL);
+  Serial.println(SDA);
   IMUinit();
 }
 
-void loop() {}
+void loop() {Serial.println("succes");}
 
 void IMUinit() {
   //DESCRIPTION: Initialize IMU

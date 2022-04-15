@@ -87,7 +87,7 @@ RcGroups 'jihlein' - IMU implementation overhaul + SBUS implementation
   MPU6050 mpu6050;
 #elif defined USE_MPU9250_SPI
   #include "src/MPU9250/MPU9250.h"
-  MPU9250 mpu9250(SPI,10);//2,36
+  MPU9250 mpu9250(SPI,10);//2,36 (Wire, 0x68);//
 #else
   #error No MPU defined... 
 #endif
