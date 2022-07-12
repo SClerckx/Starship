@@ -66,7 +66,7 @@ void setup() {
   // Set the PA Level low to try preventing power supply related problems
   // because these examples are likely run with nodes in close proximity to
   // each other.
-  radio.setPALevel(RF24_PA_MAX);  // RF24_PA_LOW is default.
+  radio.setPALevel(RF24_PA_LOW);  // RF24_PA_LOW is default.
 
   // save on transmission time by setting the radio to only transmit the
   // number of bytes we need to transmit a float
@@ -86,9 +86,10 @@ void setup() {
   }
 
   // For debugging info
-  // printf_begin();             // needed only once for printing details
-  // radio.printDetails();       // (smaller) function that prints raw register values
-  // radio.printPrettyDetails(); // (larger) function that prints human readable data
+  printf_begin();             // needed only once for printing details
+  radio.printDetails();       // (smaller) function that prints raw register values
+  Serial.println("Pretty");
+  radio.printPrettyDetails(); // (larger) function that prints human readable data
 
 } // setup
 

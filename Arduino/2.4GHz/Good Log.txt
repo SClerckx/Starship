@@ -1,0 +1,51 @@
+15:15:28.911 -> THIS IS THE TRANSMITTER CODE - YOU NEED THE OTHER ARDIUNO TO SEND BACK A RESPONSE
+15:15:29.005 ->  49 78 111 100 101 0
+15:15:29.053 -> 
+15:15:29.053 ->  50 78 111 100 101 0
+15:15:29.053 -> 
+15:15:29.053 -> Details
+15:15:29.099 -> SPI Speedz	= 10 Mhz
+15:15:29.099 -> STATUS		= 0x0e RX_DR=0 TX_DS=0 MAX_RT=0 RX_P_NO=7 TX_FULL=0
+15:15:29.146 -> RX_ADDR_P0-1	= 0x65646f4e32 0x65646f4e31
+15:15:29.193 -> RX_ADDR_P2-5	= 0xc3 0xc4 0xc5 0xc6
+15:15:29.238 -> TX_ADDR		= 0x65646f4e32
+15:15:29.284 -> RX_PW_P0-6	= 0x20 0x20 0x20 0x20 0x20 0x20
+15:15:29.331 -> EN_AA		= 0x3f
+15:15:29.331 -> EN_RXADDR	= 0x03
+15:15:29.331 -> RF_CH		= 0x7c
+15:15:29.379 -> RF_SETUP	= 0x09
+15:15:29.379 -> CONFIG		= 0x0e
+15:15:29.379 -> DYNPD/FEATURE	= 0x00 0x00
+15:15:29.425 -> Data Rate	= 2 MBPS
+15:15:29.425 -> Model		= nRF24L01+
+15:15:29.471 -> CRC Length	= 16 bits
+15:15:29.471 -> PA Power	= PA_MIN
+15:15:29.517 -> ARC		= 15
+15:15:29.517 -> Pretty
+15:15:29.517 -> SPI Frequency		= 10 Mhz
+15:15:29.564 -> Channel			= 124 (~ 2524 MHz)
+15:15:29.564 -> Model			= nRF24L01+
+15:15:29.610 -> RF Data Rate		= 2 MBPS
+15:15:29.657 -> RF Power Amplifier	= PA_MIN
+15:15:29.657 -> RF Low Noise Amplifier	= Enabled
+15:15:29.704 -> CRC Length		= 16 bits
+15:15:29.704 -> Address Length		= 5 bytes
+15:15:29.751 -> Static Payload Length	= 32 bytes
+15:15:29.797 -> Auto Retry Delay	= 1500 microseconds
+15:15:29.843 -> Auto Retry Attempts	= 15 maximum
+15:15:29.843 -> Packets lost on
+15:15:29.890 ->     current channel	= 0
+15:15:29.890 -> Retry attempts made for
+15:15:29.936 ->     last transmission	= 15
+15:15:29.936 -> Multicast		= Disabled
+15:15:29.982 -> Custom ACK Payload	= Disabled
+15:15:30.030 -> Dynamic Payloads	= Disabled
+15:15:30.030 -> Auto Acknowledgment	= Enabled
+15:15:30.077 -> Primary Mode		= TX
+15:15:30.077 -> TX address		= 0x65646f4e32
+15:15:30.124 -> pipe 0 ( open ) bound	= 0x65646f4e32
+15:15:30.171 -> pipe 1 ( open ) bound	= 0x65646f4e31
+15:15:30.217 -> pipe 2 (closed) bound	= 0xc3
+15:15:30.217 -> pipe 3 (closed) bound	= 0xc4
+15:15:30.263 -> pipe 4 (closed) bound	= 0xc5
+15:15:30.311 -> pipe 5 (closed) bound	= 0xc6
