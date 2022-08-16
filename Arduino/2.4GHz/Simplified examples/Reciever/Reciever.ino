@@ -28,7 +28,7 @@ void setup() {
   radio.begin();
 
   // Set the transmit power to lowest available to prevent power supply related issues
-  radio.setPALevel(RF24_PA_MIN);
+  radio.setPALevel(RF24_PA_MAX);
 
   // Set the speed of the transmission to the quickest available
   radio.setDataRate(RF24_1MBPS);
@@ -60,7 +60,7 @@ void setup() {
 void loop() {
    unsigned long currentMillis = millis();
  
-  if(currentMillis - previousMillis > interval) 
+  /*if(currentMillis - previousMillis > interval) 
   {
           Serial.println("listening details");
           // For debugging info
@@ -71,7 +71,7 @@ void loop() {
           // save the last time you blinked the LED 
           previousMillis = currentMillis;
   }
-  
+  */
   // This is what we receive from the other device (the transmitter)
   unsigned char data;
 
@@ -95,5 +95,7 @@ void loop() {
     // Tell the user what we sent back (the random numer + 1)
     Serial.print("Sent response ");
     Serial.println(data);
+
+    delay(20);
   }
 }

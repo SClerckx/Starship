@@ -28,7 +28,7 @@ void setup() {
   radio.begin();
 
   // Set the transmit power to lowest available to prevent power supply related issues
-  radio.setPALevel(RF24_PA_MIN);
+  radio.setPALevel(RF24_PA_MAX);
 
   // Set the speed of the transmission to the quickest available
   radio.setDataRate(RF24_1MBPS);
