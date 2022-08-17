@@ -52,7 +52,8 @@ RcGroups 'jihlein' - IMU implementation overhaul + SBUS implementation
 
 //Uncomment only one IMU
 //#define USE_MPU6050_I2C //default
-#define USE_MPU9250_SPI
+//#define USE_MPU9250_SPI
+#define USE_MPU9250_I2C
 
 //Uncomment only one full scale gyro range (deg/sec)
 #define GYRO_250DPS //default
@@ -87,7 +88,14 @@ RcGroups 'jihlein' - IMU implementation overhaul + SBUS implementation
   MPU6050 mpu6050;
 #elif defined USE_MPU9250_SPI
   #include "src/MPU9250/MPU9250.h"
-  MPU9250 mpu9250(SPI1,38);//2,36 (Wire, 0x68);//
+  MPU9250 mpu9250(SPI2,38);//2,36 (Wire, 0x68);//
+#elif defined USE_MPU9250_I2C
+ //#include "mpu9250.h"
+ //bfs::Mpu9250 mpu9250;
+//#elif defined USE_MPU9250_I2C_Boulder
+ #include "src/MPU9250/MPU9250.h"
+  #include "mpu9250.h"
+  MPU9250 mpu9250(Wire,bfs::Mpu9250::I2C_ADDR_PRIM);//2,36 (Wire, 0x68);//
 #else
   #error No MPU defined... 
 #endif
@@ -109,7 +117,7 @@ RcGroups 'jihlein' - IMU implementation overhaul + SBUS implementation
   #define ACCEL_FS_SEL_4     MPU6050_ACCEL_FS_4
   #define ACCEL_FS_SEL_8     MPU6050_ACCEL_FS_8
   #define ACCEL_FS_SEL_16    MPU6050_ACCEL_FS_16
-#elif defined USE_MPU9250_SPI
+#elif defined USE_MPU9250_SPI || defined USE_MPU9250_I2C
   #define GYRO_FS_SEL_250    mpu9250.GYRO_RANGE_250DPS
   #define GYRO_FS_SEL_500    mpu9250.GYRO_RANGE_500DPS
   #define GYRO_FS_SEL_1000   mpu9250.GYRO_RANGE_1000DPS                                                        
@@ -164,17 +172,17 @@ unsigned long channel_6_fs = 2000; //aux1
 
 //Filter parameters - Defaults tuned for 2kHz loop rate; Do not touch unless you know what you are doing:
 float B_madgwick = 0.04;  //Madgwick filter parameter
-float B_accel = 0.14;     //Accelerometer LP filter paramter, (MPU6050 default: 0.14. MPU9250 default: 0.2)
-float B_gyro = 0.1;       //Gyro LP filter paramter, (MPU6050 default: 0.1. MPU9250 default: 0.17)
+float B_accel = 0.2;     //Accelerometer LP filter paramter, (MPU6050 default: 0.14. MPU9250 default: 0.2)
+float B_gyro = 0.17;       //Gyro LP filter paramter, (MPU6050 default: 0.1. MPU9250 default: 0.17)
 float B_mag = 1.0;        //Magnetometer LP filter parameter
 
 //Magnetometer calibration parameters - if using MPU9250, uncomment calibrateMagnetometer() in void setup() to get these values, else just ignore these
-float MagErrorX = 0.0;
-float MagErrorY = 0.0; 
-float MagErrorZ = 0.0;
+float MagErrorX = -50.12;
+float MagErrorY = 162.02; 
+float MagErrorZ = 25.48;
 float MagScaleX = 1.0;
-float MagScaleY = 1.0;
-float MagScaleZ = 1.0;
+float MagScaleY = 0.76;
+float MagScaleZ = 1.38;
 
 //Controller parameters (take note of defaults before modifying!): 
 float i_limit = 25.0;     //Integrator saturation level, mostly for safety (default 25.0)
@@ -435,11 +443,11 @@ void loop() {
   //printWorldAccelData();
   //printVelData();
   //printEnsemble();
-  //printMagData();       //prints filtered magnetometer data direct from IMU (expected: ~ -300 to 300)
+  printMagData();       //prints filtered magnetometer data direct from IMU (expected: ~ -300 to 300)
   //printRollPitchYaw();  //prints roll, pitch, and yaw angles in degrees from Madgwick filter (expected: degrees, 0 when level)
   //printPIDoutput();     //prints computed stabilized PID variables from controller and desired setpoint (expected: ~ -1 to 1)
   //printMotorCommands(); //prints the values being written to the motors (expected: 120 to 250)
-  printServoCommands(); //prints the values being written to the servos (expected: 0 to 180)
+  //printServoCommands(); //prints the values being written to the servos (expected: 0 to 180)
   //printLoopRate();      //prints the time between loops in microseconds (expected: microseconds between loop iterations)
 
   //Get vehicle state
@@ -515,8 +523,11 @@ void IMUinit() {
     mpu6050.setFullScaleAccelRange(ACCEL_SCALE);
     
   #elif defined USE_MPU9250_SPI
+    Wire.begin();
+    Wire.setClock(1000000); //Note this is 2.5 times the spec sheet 400 kHz max...
+    
     int status = mpu9250.begin();    
-
+    
     if (status < 0) {
       Serial.println("MPU9250 initialization unsuccessful");
       Serial.println("Check MPU9250 wiring or try cycling power");
@@ -534,7 +545,32 @@ void IMUinit() {
     mpu9250.setMagCalY(MagErrorY, MagScaleY);
     mpu9250.setMagCalZ(MagErrorZ, MagScaleZ);
     mpu9250.setSrd(0); //sets gyro and accel read to 1khz, magnetometer read to 100hz
-  #endif
+    
+  #elif defined USE_MPU9250_I2C    
+    Wire.begin();
+    Wire.setClock(1000000/10); //Note this is 2.5 times the spec sheet 400 kHz max...
+    
+    int status = mpu9250.begin();    
+    
+    if (status < 0) {
+      Serial.println("MPU9250 initialization unsuccessful");
+      Serial.println("Check MPU9250 wiring or try cycling power");
+      Serial.print("Status: ");
+      Serial.println(status);
+      while(1) {}
+    }
+
+    //From the reset state all registers should be 0x00, so we should be at
+    //max sample rate with digital low pass filter(s) off.  All we need to
+    //do is set the desired fullscale ranges
+    mpu9250.setGyroRange(GYRO_SCALE);
+    mpu9250.setAccelRange(ACCEL_SCALE);
+    mpu9250.setMagCalX(MagErrorX, MagScaleX);
+    mpu9250.setMagCalY(MagErrorY, MagScaleY);
+    mpu9250.setMagCalZ(MagErrorZ, MagScaleZ);
+    mpu9250.setSrd(0); //sets gyro and accel read to 1khz, magnetometer read to 100hz
+
+   #endif
 }
 
 void getIMUdata() {
@@ -551,7 +587,7 @@ void getIMUdata() {
 
   #if defined USE_MPU6050_I2C
     mpu6050.getMotion6(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ);
-  #elif defined USE_MPU9250_SPI
+  #elif defined USE_MPU9250_SPI || defined USE_MPU9250_I2C
     mpu9250.getMotion9(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ, &MgX, &MgY, &MgZ);
   #endif
 
@@ -599,6 +635,15 @@ void getIMUdata() {
   MagX = (1.0 - B_mag)*MagX_prev + B_mag*MagX;
   MagY = (1.0 - B_mag)*MagY_prev + B_mag*MagY;
   MagZ = (1.0 - B_mag)*MagZ_prev + B_mag*MagZ;
+  if (MagX > 300 || MagX < -300){
+    MagX = MagX_prev;
+  }
+  if (MagY > 300 || MagY < -300){
+    MagY = MagY_prev;
+  }
+  if (MagZ > 300 || MagZ < -300){
+    MagZ = MagZ_prev;
+  }
   MagX_prev = MagX;
   MagY_prev = MagY;
   MagZ_prev = MagZ;
@@ -637,7 +682,7 @@ void calculate_IMU_error() {
   while (c < 12000) {
     #if defined USE_MPU6050_I2C
       mpu6050.getMotion6(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ);
-    #elif defined USE_MPU9250_SPI
+    #elif defined USE_MPU9250_SPI || defined USE_MPU9250_I2C
       mpu9250.getMotion9(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ, &MgX, &MgY, &MgZ);
     #endif
     
@@ -674,7 +719,7 @@ void calibrateAttitude() {
    * to boot. 
    */
   //Warm up IMU and madgwick filter in simulated main loop
-  for (int i = 0; i <= 10000; i++) {
+  for (int i = 0; i <= 10000*5; i++) {
     prev_time = current_time;      
     current_time = micros();      
     dt = (current_time - prev_time)/1000000.0; 
@@ -1400,7 +1445,7 @@ void throttleCut() {
 }
 
 void calibrateMagnetometer() {
-  #if defined USE_MPU9250_SPI 
+  #if defined USE_MPU9250_SPI || defined USE_MPU9250_I2C
     float success;
     Serial.println("Beginning magnetometer calibration in");
     Serial.println("3...");

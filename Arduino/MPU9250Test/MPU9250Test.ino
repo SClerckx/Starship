@@ -1,7 +1,7 @@
 #define USE_MPU9250_SPI
 #include <SPI.h>      //SPI communication
-#if defined USE_MPU9250_SPI
-  #include "src/MPU9250/MPU9250.h"
+#if defined USE_MPU9250_SPI  //"src/MPU9250/MPU9250.h"
+  #include "MPU9250.h"  
   MPU9250 mpu9250(SPI1,38); //SPI, 10
 #endif
 
