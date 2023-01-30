@@ -68,12 +68,16 @@ class ThreadedCamera(object):
 			cv2.rectangle(self.frame, (x, y), (x + w, y + h),(0, 255, 0), 2)
 
 	def track_frame(self):
+		prevTime = time.time()
 		while True:
 			if self.newFrame:
 				(self.success, self.box) = self.tracker.update(self.frame)
 				self.newFrame = False
 				self.getRay()
 			time.sleep(self.FPS*2)
+			currTime = time.time()
+			print(currTime - prevTime)
+			prevTime = currTime
 
 	def getRay(self):
 		(x, y, w, h) = [int(v) for v in self.box]

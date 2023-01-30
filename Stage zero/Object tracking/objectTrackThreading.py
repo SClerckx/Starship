@@ -5,7 +5,7 @@ from threading import Thread
 # 1280x720
 # 720x480
 # "rtsp://192.168.0.206:8080/h264_ulaw.sdp"
-url1 = "http://192.168.0.199:8080/shot.jpg"
+url1 = "http://192.168.0.200:8080/shot.jpg"
 #url2 = "http://192.168.0.199:8080"
 
 

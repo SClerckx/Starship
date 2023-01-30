@@ -30,8 +30,8 @@ void setup() {
   servo3.write(90);
   servo4.write(90);
   servo5.write(90);
-  servo6.write(90);
-  servo7.write(90);
+  servo6.write(0);
+  servo7.write(0);
   Serial.println("Centered");
 }
 

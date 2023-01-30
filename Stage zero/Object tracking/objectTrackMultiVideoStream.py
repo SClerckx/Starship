@@ -11,8 +11,9 @@ from mpl_toolkits.mplot3d import Axes3D
 
 resolution = (1280,720)
 # 720x480
-url1 = "http://192.168.137.39:8080/video"
-url2 = "http://192.168.137.229:8080/video"
+url1 = "http://192.168.0.200:8080//video"
+#url1 = "http://10.0.117.254:8080//video"
+#url2 = "http://10.0.119.72:8080//video"
 
 #https://stackoverflow.com/questions/58293187/opencv-real-time-streaming-video-capture-is-slow-how-to-drop-frames-or-get-sync
 class ThreadedCamera(object):
@@ -68,12 +69,16 @@ class ThreadedCamera(object):
 			cv2.rectangle(self.frame, (x, y), (x + w, y + h),(0, 255, 0), 2)
 
 	def track_frame(self):
+		prevTime = time.time()
 		while True:
 			if self.newFrame:
 				(self.success, self.box) = self.tracker.update(self.frame)
 				self.newFrame = False
 				self.getRay()
 			time.sleep(self.FPS*2)
+			currTime = time.time()
+			print("trackDT: ",  currTime - prevTime)
+			prevTime = currTime
 
 	def getRay(self):
 		(x, y, w, h) = [int(v) for v in self.box]
@@ -117,20 +122,20 @@ def calculatePosition():
 plt.ion()
 if __name__ == '__main__':
 	threaded_camera1 = ThreadedCamera(url1, position=np.array([2.13, 0, 0]), e1 = np.array([-1, 0, 0]), e2 = np.array([0, 1, 0]))
-	threaded_camera2 = ThreadedCamera(url2, position=np.array([0, 1.36, 0]), e1 = np.array([0, -1, 0]), e2 = np.array([-1, 0, 0]))
+	#threaded_camera2 = ThreadedCamera(url2, position=np.array([0, 1.36, 0]), e1 = np.array([0, -1, 0]), e2 = np.array([-1, 0, 0]))
 	prevTime = time.time()
 	plt.show()
 	solutions = []
 	while True:
 		currentTime = time.time()
 		if currentTime - prevTime > 0.1:
-			solutions.append(calculatePosition())
+			#solutions.append(calculatePosition())
 			prevTime = currentTime
 
 		try:
 			pass
 			threaded_camera1.show_frame()
-			threaded_camera2.show_frame()
+			#threaded_camera2.show_frame()
 		except AttributeError:
 			print("pass")
 			pass
