@@ -90,11 +90,11 @@ float maxYaw = 0;     //Max yaw rate in deg/sec
 
 float Kp_roll_angle = 0.9;    //Roll P-gain - angle mode 
 float Ki_roll_angle = 0.3;    //Roll I-gain - angle mode
-float Kd_roll_angle = 0.8*0.5;   //Roll D-gain - angle mode (if using controlANGLE2(), set to 0.0)
+float Kd_roll_angle = 0.8*3*2*3;   //Roll D-gain - angle mode (if using controlANGLE2(), set to 0.0) last *3 was not tested
 float B_loop_roll = 0.5;      //Roll damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
 float Kp_pitch_angle = 0.9;   //Pitch P-gain - angle mode
 float Ki_pitch_angle = 0.3;   //Pitch I-gain - angle mode
-float Kd_pitch_angle = 0.8*0.5;  //Pitch D-gain - angle mode (if using controlANGLE2(), set to 0.0)
+float Kd_pitch_angle = 0.8*3*2*3;  //Pitch D-gain - angle mode (if using controlANGLE2(), set to 0.0)
 float B_loop_pitch = 0.5;     //Pitch damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
 
 float Kp_roll_rate = 0.15;    //Roll P-gain - rate mode
@@ -134,8 +134,8 @@ const int ch5Pin = 21; //gear (throttle cut)
 const int ch6Pin = 22; //aux1 (free aux channel)
 const int PPM_Pin = 23;
 //OneShot125 ESC pin outputs:
-//const int m1Pin = 0; //Deactivated to serve as Aft Flap servos
-//const int m2Pin = 1; //Deactivated to serve as Aft Flap servos
+const int m1Pin = 0; //Deactivated to serve as Aft Flap servos
+const int m2Pin = 1; //Deactivated to serve as Aft Flap servos
 const int m3Pin = 2;
 const int m4Pin = 3;
 const int m5Pin = 4;
@@ -152,8 +152,8 @@ const int servo7Pin = 12;
 const int servo8Pin = 28;
 const int servo9Pin = 29;
 // PWM Servo Aft Flap, left and right
-const int servo10Pin = 0; //set to 0 in order to free up I2C bus 2. Previously 24
-const int servo11Pin = 1; //set to 1 in order to free up I2C bus 2. Previously 25
+const int servo10Pin = 24; //set to 0 in order to free up I2C bus 2. Previously 24
+const int servo11Pin = 25; //set to 1 in order to free up I2C bus 2. Previously 25
 
 PWMServo servo1;  //create servo object to control a servo or ESC with PWM
 PWMServo servo2;
@@ -266,7 +266,7 @@ void setup() {
   //delay(10);
 
   //Initialize radio communication
-  //radioSetup();
+  radioSetup();
   
   //Set radio channels to default (safe) values before entering main loop
   channel_1_pwm = channel_1_fs;
@@ -345,8 +345,8 @@ void loop() {
   //printVelData();
   //printEnsemble();
   //printMagData();       //prints filtered magnetometer data direct from IMU (expected:~ -300 to 300)
-  printRollPitchYaw();  //prints roll, pitch, and yaw angles in degrees from Madgwick filter (expected:degrees, 0 when level)
-  //printPIDoutput();     //prints computed stabilized PID variables from controller and desired setpoint (expected:~ -1 to 1)
+  //printRollPitchYaw();  //prints roll, pitch, and yaw angles in degrees from Madgwick filter (expected:degrees, 0 when level)
+  printPIDoutput();     //prints computed stabilized PID variables from controller and desired setpoint (expected:~ -1 to 1)
   //printMotorCommands(); //prints the values being written to the motors (expected:120 to 250)
   //printServoCommands(); //prints the values being written to the servos (expected:0 to 180)
   //printLoopRate();      //prints the time between loops in microseconds (expected:microseconds between loop iterations)
@@ -388,7 +388,7 @@ void loop() {
     
   //Get vehicle commands for next loop iteration
   getCommands(); //pulls current available radio commands
-  //failSafe(); //prevent failures in event of bad receiver connection, defaults to failsafe values assigned in setup
+  failSafe(); //prevent failures in event of bad receiver connection, defaults to failsafe values assigned in setup
 
   //Regulate loop rate
   loopRate(2000); //do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
@@ -733,17 +733,17 @@ void controlMixer() {
   m6_command_scaled = 0;
 
   //0.5 is centered servo, 0 is zero throttle if connecting to ESC for conventional PWM, 1 is max throttle
-  s1_command_scaled = 0.5 - pitch_PID;//+ velx_bar * 0.5;
+  s1_command_scaled = 0.5 + pitch_PID;//+ velx_bar * 0.5;
   s2_command_scaled = 0.5 - roll_PID;// + vely_bar * 0.5;
   s3_command_scaled = 0;
   s4_command_scaled = 0;
   s5_command_scaled = 0;
-  s6_command_scaled = thro_des - yaw_PID;
-  s7_command_scaled = thro_des + yaw_PID;
-  s8_command_scaled = pitchTrim + pitch_PID;
-  s9_command_scaled = (1-pitchTrim) + pitch_PID;
-  s10_command_scaled = pitchTrim - pitch_PID;
-  s11_command_scaled = (1 - pitchTrim) - pitch_PID;
+  s6_command_scaled = thro_des; //- yaw_PID;
+  s7_command_scaled = thro_des; //+ yaw_PID;
+  s8_command_scaled = 0;//pitchTrim + pitch_PID;
+  s9_command_scaled = 0;//(1-pitchTrim) + pitch_PID;
+  s10_command_scaled = 0;//pitchTrim - pitch_PID;
+  s11_command_scaled = 0;//(1 - pitchTrim) - pitch_PID;
 
   /*s1_command_scaled = 0;
   s2_command_scaled = 0;
@@ -805,7 +805,7 @@ void scaleCommands() {
   s10_command_PWM = s10_command_scaled*180;
   s11_command_PWM = s11_command_scaled*180;
   //Constrain commands to servos within servo library bounds
-  s1_command_PWM = constrain(s1_command_PWM, 90-30, 90+30);
+  s1_command_PWM = constrain(s1_command_PWM, 90-50, 90+10);
   s2_command_PWM = constrain(s2_command_PWM, 90-30, 90+30);
   s3_command_PWM = constrain(s3_command_PWM, 0, 180);
   s4_command_PWM = constrain(s4_command_PWM, 0, 180);
@@ -881,21 +881,23 @@ void failSafe() {
   int check6 = 0;
 
   //Triggers for failure criteria
-  if (channel_1_pwm > maxVal || channel_1_pwm < minVal) check1 = 1;
-  if (channel_2_pwm > maxVal || channel_2_pwm < minVal) check2 = 1;
-  if (channel_3_pwm > maxVal || channel_3_pwm < minVal) check3 = 1;
-  if (channel_4_pwm > maxVal || channel_4_pwm < minVal) check4 = 1;
-  if (channel_5_pwm > maxVal || channel_5_pwm < minVal) check5 = 1;
-  if (channel_6_pwm > maxVal || channel_6_pwm < minVal) check6 = 1;
+  if (channel_1_pwm > maxVal || channel_1_pwm < minVal) {check1 = 1; Serial.println("Failsafe 1: ");} //numBlinks, upTime (ms), downTime (ms)}
+  /*if (channel_2_pwm > maxVal || channel_2_pwm < minVal) {check2 = 1; Serial.println("Failsafe 222222");}
+  if (channel_3_pwm > maxVal || channel_3_pwm < minVal) {check3 = 1; Serial.println("Failsafe 333333");}
+  if (channel_4_pwm > maxVal || channel_4_pwm < minVal) {check4 = 1; Serial.println("Failsafe 444444");}
+  if (channel_5_pwm > maxVal || channel_5_pwm < minVal) {check5 = 1; Serial.println("Failsafe 555555");}
+  if (channel_6_pwm > maxVal || channel_6_pwm < minVal) {check6 = 1; Serial.println("Failsafe 666666");}*/
 
   //If any failures, set to default failsafe values
+  //Don't blink in here
   if ((check1 + check2 + check3 + check4 + check5 + check6) > 0) {
     channel_1_pwm = channel_1_fs;
-    channel_2_pwm = channel_2_fs;
+    Serial.println("Failsafe");
+    /*channel_2_pwm = channel_2_fs;
     channel_3_pwm = channel_3_fs;
     channel_4_pwm = channel_4_fs;
     channel_5_pwm = channel_5_fs;
-    channel_6_pwm = channel_6_fs;
+    channel_6_pwm = channel_6_fs;*/
   }
 }
 
@@ -1077,7 +1079,7 @@ void setupBlink(int numBlinks,int upTime, int downTime) {
 }
 
 void printRadioData() {
-  if (current_time - print_counter > 10000) {
+  if (current_time - print_counter > 1000) {
     print_counter = micros();
     Serial.print(F(" CH1:"));
     Serial.print(channel_1_pwm);
@@ -1272,13 +1274,13 @@ void printServoCommands() {
     Serial.print(F(" s6_command:"));
     Serial.print(s6_command_PWM);
     Serial.print(F(" s7_command:"));
-    Serial.println(s7_command_PWM);
+    Serial.print(s7_command_PWM);
     Serial.print(F(" s8_command:"));
-    Serial.println(s8_command_PWM);
+    Serial.print(s8_command_PWM);
     Serial.print(F(" s9_command:"));
-    Serial.println(s9_command_PWM);
+    Serial.print(s9_command_PWM);
     Serial.print(F(" s10_command:"));
-    Serial.println(s10_command_PWM);
+    Serial.print(s10_command_PWM);
     Serial.print(F(" s11_command:"));
     Serial.println(s11_command_PWM);
   }
