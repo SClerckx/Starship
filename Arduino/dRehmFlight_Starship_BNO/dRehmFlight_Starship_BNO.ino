@@ -88,13 +88,13 @@ float maxRoll = 120.0;     //Max roll angle in degrees for angle mode (maximum 6
 float maxPitch = 120.0;    //Max pitch angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode 30
 float maxYaw = 0;     //Max yaw rate in deg/sec
 
-float Kp_roll_angle = 0.9;    //Roll P-gain - angle mode 
-float Ki_roll_angle = 0.3;    //Roll I-gain - angle mode
-float Kd_roll_angle = 0.8*3*2*3;   //Roll D-gain - angle mode (if using controlANGLE2(), set to 0.0) last *3 was not tested
+float Kp_roll_angle = 0.9*0.5;    //Roll P-gain - angle mode 
+float Ki_roll_angle = 0.3*0.5;    //Roll I-gain - angle mode CHECK IF REDUCING BY ANOTHER 0.5 IMPROVES
+float Kd_roll_angle = 0.8*3*2;   //Roll D-gain - angle mode (if using controlANGLE2(), set to 0.0) last *3 was not tested
 float B_loop_roll = 0.5;      //Roll damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
-float Kp_pitch_angle = 0.9;   //Pitch P-gain - angle mode
-float Ki_pitch_angle = 0.3;   //Pitch I-gain - angle mode
-float Kd_pitch_angle = 0.8*3*2*3;  //Pitch D-gain - angle mode (if using controlANGLE2(), set to 0.0)
+float Kp_pitch_angle = 0.9*0.5;//*0.5;   //Pitch P-gain - angle mode 0.9*0.5
+float Ki_pitch_angle = 0.3*0.5;   //Pitch I-gain - angle mode
+float Kd_pitch_angle = -0.8*3*2*1.2;  //Pitch D-gain - angle mode (if using controlANGLE2(), set to 0.0) -0.8*3*2*2
 float B_loop_pitch = 0.5;     //Pitch damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
 
 float Kp_roll_rate = 0.15;    //Roll P-gain - rate mode
@@ -104,9 +104,9 @@ float Kp_pitch_rate = 0.15;   //Pitch P-gain - rate mode
 float Ki_pitch_rate = 0.2;    //Pitch I-gain - rate mode
 float Kd_pitch_rate = 0.0002; //Pitch D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
 
-float Kp_yaw = 0.3;           //Yaw P-gain
-float Ki_yaw = 0.05;          //Yaw I-gain
-float Kd_yaw = 0.00015;       //Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
+float Kp_yaw = 0.3*10*2;           //Yaw P-gain
+float Ki_yaw = 0.05*10*1.5;          //Yaw I-gain
+float Kd_yaw = 0.00015*10*2;       //Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
 
 // Code for naive implementation of position control
 float Kd_posx = Kp_roll_rate * 3.14/180; //correct gain here
@@ -527,8 +527,8 @@ void getDesState() {
   yaw_des = (channel_4_pwm - 1500.0)/500.0; //between -1 and 1
   //Constrain within normalized bounds
   thro_des = constrain(thro_des, 0.0, 1.0); //between 0 and 1
-  roll_des = constrain(roll_des, -1.0, 1.0)*maxRoll * 0.5; //between -maxRoll and +maxRoll
-  pitch_des = constrain(pitch_des, -1.0, 1.0)*maxPitch * 0.5; //between -maxPitch and +maxPitch
+  roll_des = -constrain(roll_des, -1.0, 1.0)*maxRoll * 0.5 * 0.5 * 0.5; //between -maxRoll and +maxRoll
+  pitch_des = constrain(pitch_des, -1.0, 1.0)*maxPitch * 0.5 * 0.5 * 0.5; //between -maxPitch and +maxPitch
   yaw_des = constrain(yaw_des, -1.0, 1.0)*maxYaw * 0.5; //between -maxYaw and +maxYaw
 
   roll_passthru = roll_des/(2*maxRoll);
@@ -742,13 +742,13 @@ void controlMixer() {
   m6_command_scaled = 0;
 
   //0.5 is centered servo, 0 is zero throttle if connecting to ESC for conventional PWM, 1 is max throttle
-  s1_command_scaled = 0.5 + pitch_PID;//+ velx_bar * 0.5;
-  s2_command_scaled = 0.5 - roll_PID;// + vely_bar * 0.5;
+  s1_command_scaled = 0.5 + pitch_PID; //+ 0.2;//+ velx_bar * 0.5;
+  s2_command_scaled = 0.5 - roll_PID; //+ 0.375;// + vely_bar * 0.5;
   s3_command_scaled = 0;
   s4_command_scaled = 0;
   s5_command_scaled = 0;
-  s6_command_scaled = thro_des; //- yaw_PID;
-  s7_command_scaled = thro_des; //+ yaw_PID;
+  s6_command_scaled = thro_des - yaw_PID;
+  s7_command_scaled = thro_des + yaw_PID;
   s8_command_scaled = 0;//pitchTrim + pitch_PID;
   s9_command_scaled = 0;//(1-pitchTrim) + pitch_PID;
   s10_command_scaled = 0;//pitchTrim - pitch_PID;
@@ -814,8 +814,8 @@ void scaleCommands() {
   s10_command_PWM = s10_command_scaled*180;
   s11_command_PWM = s11_command_scaled*180;
   //Constrain commands to servos within servo library bounds
-  s1_command_PWM = constrain(s1_command_PWM, 90-50, 90+10);
-  s2_command_PWM = constrain(s2_command_PWM, 90-30, 90+30);
+  s1_command_PWM = constrain(s1_command_PWM, 90-50, 90+30); //roll center = 105
+  s2_command_PWM = constrain(s2_command_PWM, 90-30, 90+40); //pitch center = 75
   s3_command_PWM = constrain(s3_command_PWM, 0, 180);
   s4_command_PWM = constrain(s4_command_PWM, 0, 180);
   s5_command_PWM = constrain(s5_command_PWM, 0, 180);
