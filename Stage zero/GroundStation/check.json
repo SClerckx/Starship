@@ -1,0 +1,96 @@
+Serial.print(F("[ServoCommands][s1_command]:")); //1
+    Serial.print(s1_command_PWM);
+    Serial.print(F(" [ServoCommands][s2_command]:"));  //2
+    Serial.print(s2_command_PWM);
+    Serial.print(F(" [ServoCommands][s3_command]:")); //3
+    Serial.print(s3_command_PWM); 
+    Serial.print(F(" [ServoCommands][s4_command]:")); //4
+    Serial.print(s4_command_PWM);
+    Serial.print(F(" [ServoCommands][s5_command]:")); //5
+    Serial.print(s5_command_PWM);
+    Serial.print(F(" [ServoCommands][s6_command]:")); //6
+    Serial.print(s6_command_PWM);
+    Serial.print(F(" [ServoCommands][s7_command]:")); //7
+    Serial.print(s7_command_PWM);
+    Serial.print(F(" [ServoCommands][s8_command]:")); //8
+    Serial.print(s8_command_PWM);
+    Serial.print(F(" [ServoCommands][s9_command]:")); //9
+    Serial.print(s9_command_PWM);
+    Serial.print(F(" [ServoCommands][s10_command]:")); //10
+    Serial.print(s10_command_PWM);
+    Serial.print(F(" [ServoCommands][s11_command]:")); //11
+    Serial.print(s11_command_PWM);
+
+    Serial.print(F(" [MotorCommands][m1_command]:")); //12
+    Serial.print(m1_command_PWM);
+    Serial.print(F(" [MotorCommands][m2_command]:")); //13
+    Serial.print(m2_command_PWM);
+    Serial.print(F(" [MotorCommands][m3_command]:"));   //14
+    Serial.print(m3_command_PWM);
+    Serial.print(F(" [MotorCommands][m4_command]:"));  //15
+    Serial.print(m4_command_PWM);
+    Serial.print(F(" [MotorCommands][m5_command]:")); //16
+    Serial.print(m5_command_PWM);
+    Serial.print(F(" [MotorCommands][m6_command]:")); //17
+    Serial.print(m6_command_PWM);
+
+    Serial.print(F(" [PID][roll_PID]:")); //18
+    Serial.print(roll_PID);
+    Serial.print(F(" [PID][pitch_PID]:")); //19
+    Serial.print(pitch_PID);
+    Serial.print(F(" [PID][yaw_PID]:")); //20
+    Serial.print(yaw_PID);
+
+    Serial.print(F(" [Quaternion][q0]:")); //21
+    Serial.print(q0);
+    Serial.print(F(" [Quaternion][q1]:")); //22
+    Serial.print(q1);
+    Serial.print(F(" [Quaternion][q2]:")); //23
+    Serial.print(q2);
+    Serial.print(F(" [Quaternion][q3]:")); //24
+    Serial.print(q3);
+
+    Serial.print(F(" [Euler][roll]:")); //25
+    Serial.print(roll_IMU);
+    Serial.print(F(" [Euler][pitch]:")); //26
+    Serial.print(pitch_IMU);
+    Serial.print(F(" [Euler][yaw]:")); //27
+    Serial.print(yaw_IMU);
+
+    Serial.print(F(" [Gyro][GyroX]:"));    //28
+    Serial.print(GyroX);
+    Serial.print(F(" [Gyro][GyroY]:"));   //29
+    Serial.print(GyroY);
+    Serial.print(F(" [Gyro][GyroZ]:"));  //30
+    Serial.print(GyroZ);
+
+    Serial.print(F("[Desireds][thro_des]:")); //31
+    Serial.print(thro_des);
+    Serial.print(F(" [Desireds][roll_des]:")); //32
+    Serial.print(roll_des);
+    Serial.print(F(" [Desireds][pitch_des]:")); //33
+    Serial.print(pitch_des);
+    Serial.print(F(" [Desireds][yaw_des]:")); //34
+    Serial.print(yaw_des);
+
+    Serial.print(F(" [Radio][CH1]:")); //35
+    Serial.print(channel_1_pwm);
+    Serial.print(F(" [Radio][CH2]:")); //36
+    Serial.print(channel_2_pwm);
+    Serial.print(F(" [Radio][CH3]:")); //37
+    Serial.print(channel_3_pwm);
+    Serial.print(F(" [Radio][CH4]:")); //38
+    Serial.print(channel_4_pwm);
+    Serial.print(F(" [Radio][CH5]:")); //39
+    Serial.print(channel_5_pwm);
+    Serial.print(F(" [Radio][CH6]:")); //40
+    Serial.print(channel_6_pwm);
+
+    Serial.print(F(","));
+    Serial.print(throttleCut); //41
+    Serial.print(F(","));
+    Serial.print(failSafe); //42
+
+    Serial.println("*/");
+
+    Serial.println();

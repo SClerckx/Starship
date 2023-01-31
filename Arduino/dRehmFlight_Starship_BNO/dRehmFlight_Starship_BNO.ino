@@ -104,8 +104,8 @@ float Kp_pitch_rate = 0.15;   //Pitch P-gain - rate mode
 float Ki_pitch_rate = 0.2;    //Pitch I-gain - rate mode
 float Kd_pitch_rate = 0.0002; //Pitch D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
 
-float Kp_yaw = 0.3*0.5*0.5;           //Yaw P-gain
-float Ki_yaw = 0.05*0.5;          //Yaw I-gain
+float Kp_yaw = 0.3;           //Yaw P-gain
+float Ki_yaw = 0.05;          //Yaw I-gain
 float Kd_yaw = 0.00015;       //Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
 
 // Code for naive implementation of position control
@@ -177,6 +177,9 @@ unsigned long current_time, prev_time;
 unsigned long print_counter, serial_counter;
 unsigned long blink_counter, blink_delay;
 bool blinkAlternate;
+
+bool throttleCutBool = false;
+bool failSafeBool = false;
 
 //Radio comm:
 unsigned long channel_1_pwm, channel_2_pwm, channel_3_pwm, channel_4_pwm, channel_5_pwm, channel_6_pwm;
@@ -265,7 +268,7 @@ void setup() {
 
   //delay(10);
 
-  //Initialize radio communication
+  //Initialize radio communication (THIS WILL GIVE A COMPILATION ERROR IF SOMETHING ELSE IS WRONG IN THE CODE. THIS WORKS)
   radioSetup();
   
   //Set radio channels to default (safe) values before entering main loop
@@ -334,22 +337,12 @@ void loop() {
   current_time = micros();      
   dt = (current_time - prev_time)/1000000.0;
 
+  failSafeBool = false;
+  throttleCutBool = false;  
+
   loopBlink(); //indicate we are in main loop with short blink every 1.5 seconds
 
-  //Print data at 100hz (uncomment one at a time for troubleshooting) - SELECT ONE:
-  //printRadioData();     //radio pwm values (expected:1000 to 2000)
-  //printDesiredState();  //prints desired vehicle state commanded in either degrees or deg/sec (expected:+/- maxAXIS for roll, pitch, yaw; 0 to 1 for throttle)
-  //printGyroData();      //prints filtered gyro data direct from IMU (expected:~ -250 to 250, 0 at rest)
-  //printAccelData();     //prints filtered accelerometer data direct from IMU (expected:~ -2 to 2; x,y 0 when level, z 1 when level)
-  //printWorldAccelData();
-  //printVelData();
-  //printEnsemble();
-  //printMagData();       //prints filtered magnetometer data direct from IMU (expected:~ -300 to 300)
-  //printRollPitchYaw();  //prints roll, pitch, and yaw angles in degrees from Madgwick filter (expected:degrees, 0 when level)
-  printPIDoutput();     //prints computed stabilized PID variables from controller and desired setpoint (expected:~ -1 to 1)
-  //printMotorCommands(); //prints the values being written to the motors (expected:120 to 250)
-  //printServoCommands(); //prints the values being written to the servos (expected:0 to 180)
-  //printLoopRate();      //prints the time between loops in microseconds (expected:microseconds between loop iterations)
+  //This was the previous position of all the prints
 
   //Get vehicle state
   getIMUdata(); //pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
@@ -388,7 +381,23 @@ void loop() {
     
   //Get vehicle commands for next loop iteration
   getCommands(); //pulls current available radio commands
-  failSafe(); //prevent failures in event of bad receiver connection, defaults to failsafe values assigned in setup
+  //failSafe(); //prevent failures in event of bad receiver connection, defaults to failsafe values assigned in setup
+
+  //Print data at 100hz (uncomment one at a time for troubleshooting) - SELECT ONE:
+  //printRadioData();     //radio pwm values (expected:1000 to 2000)
+  //printDesiredState();  //prints desired vehicle state commanded in either degrees or deg/sec (expected:+/- maxAXIS for roll, pitch, yaw; 0 to 1 for throttle)
+  //printGyroData();      //prints filtered gyro data direct from IMU (expected:~ -250 to 250, 0 at rest)
+  //printAccelData();     //prints filtered accelerometer data direct from IMU (expected:~ -2 to 2; x,y 0 when level, z 1 when level)
+  //printWorldAccelData();
+  //printVelData();
+  //printEnsemble();
+  //printMagData();       //prints filtered magnetometer data direct from IMU (expected:~ -300 to 300)
+  //printRollPitchYaw();  //prints roll, pitch, and yaw angles in degrees from Madgwick filter (expected:degrees, 0 when level)
+  //printPIDoutput();     //prints computed stabilized PID variables from controller and desired setpoint (expected:~ -1 to 1)
+  //printMotorCommands(); //prints the values being written to the motors (expected:120 to 250)
+  //printServoCommands(); //prints the values being written to the servos (expected:0 to 180)
+  //printLoopRate();      //prints the time between loops in microseconds (expected:microseconds between loop iterations)
+  printAll();
 
   //Regulate loop rate
   loopRate(2000); //do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
@@ -898,6 +907,8 @@ void failSafe() {
     channel_4_pwm = channel_4_fs;
     channel_5_pwm = channel_5_fs;
     channel_6_pwm = channel_6_fs;*/
+
+    failSafeBool = true;
   }
 }
 
@@ -1025,8 +1036,10 @@ void throttleCut() {
     //s3_command_PWM = 0;
     //s4_command_PWM = 0;
     //s5_command_PWM = 0;
-    //s6_command_PWM = 0;
-    //s7_command_PWM = 0;
+    s6_command_PWM = 0;
+    s7_command_PWM = 0;
+
+    throttleCutBool = true;
   }
 }
 
@@ -1284,6 +1297,195 @@ void printServoCommands() {
     Serial.print(F(" s11_command:"));
     Serial.println(s11_command_PWM);
   }
+}
+
+void printAll(){
+  if (current_time - print_counter > 1000) {
+    print_counter = micros();
+    Serial.print(F("s1_command:"));
+    Serial.print(s1_command_PWM);
+    Serial.print(F(" s2_command:"));
+    Serial.print(s2_command_PWM);
+    Serial.print(F(" s3_command:"));
+    Serial.print(s3_command_PWM);
+    Serial.print(F(" s4_command:"));
+    Serial.print(s4_command_PWM);
+    Serial.print(F(" s5_command:"));
+    Serial.print(s5_command_PWM);
+    Serial.print(F(" s6_command:"));
+    Serial.print(s6_command_PWM);
+    Serial.print(F(" s7_command:"));
+    Serial.print(s7_command_PWM);
+    Serial.print(F(" s8_command:"));
+    Serial.print(s8_command_PWM);
+    Serial.print(F(" s9_command:"));
+    Serial.print(s9_command_PWM);
+    Serial.print(F(" s10_command:"));
+    Serial.print(s10_command_PWM);
+    Serial.print(F(" s11_command:"));
+    Serial.print(s11_command_PWM);
+
+    Serial.print(F(" m1_command:"));
+    Serial.print(m1_command_PWM);
+    Serial.print(F(" m2_command:"));
+    Serial.print(m2_command_PWM);
+    Serial.print(F(" m3_command:"));
+    Serial.print(m3_command_PWM);
+    Serial.print(F(" m4_command:"));
+    Serial.print(m4_command_PWM);
+    Serial.print(F(" m5_command:"));
+    Serial.print(m5_command_PWM);
+    Serial.print(F(" m6_command:"));
+    Serial.print(m6_command_PWM);
+
+    Serial.print(F(" roll_PID:"));
+    Serial.print(roll_PID);
+    Serial.print(F(" pitch_PID:"));
+    Serial.print(pitch_PID);
+    Serial.print(F(" yaw_PID:"));
+    Serial.print(yaw_PID);
+
+    Serial.print(F(" q0:"));
+    Serial.print(q0);
+    Serial.print(F(" q1:"));
+    Serial.print(q1);
+    Serial.print(F(" q2:"));
+    Serial.print(q2);
+    Serial.print(F(" q3:"));
+    Serial.print(q3);
+
+    Serial.print(F(" roll:"));
+    Serial.print(roll_IMU);
+    Serial.print(F(" pitch:"));
+    Serial.print(pitch_IMU);
+    Serial.print(F(" yaw:"));
+    Serial.print(yaw_IMU);
+
+    Serial.print(F(" GyroX:"));
+    Serial.print(GyroX);
+    Serial.print(F(" GyroY:"));
+    Serial.print(GyroY);
+    Serial.print(F(" GyroZ:"));
+    Serial.print(GyroZ);
+
+    Serial.print(F("thro_des:"));
+    Serial.print(thro_des);
+    Serial.print(F(" roll_des:"));
+    Serial.print(roll_des);
+    Serial.print(F(" pitch_des:"));
+    Serial.print(pitch_des);
+    Serial.print(F(" yaw_des:"));
+    Serial.print(yaw_des);
+
+    Serial.print(F(" CH1:"));
+    Serial.print(channel_1_pwm);
+    Serial.print(F(" CH2:"));
+    Serial.print(channel_2_pwm);
+    Serial.print(F(" CH3:"));
+    Serial.print(channel_3_pwm);
+    Serial.print(F(" CH4:"));
+    Serial.print(channel_4_pwm);
+    Serial.print(F(" CH5:"));
+    Serial.print(channel_5_pwm);
+    Serial.print(F(" CH6: "));
+    Serial.print(channel_6_pwm);
+    
+    Serial.print(F("/*"));
+    Serial.print(s1_command_PWM);
+    Serial.print(F(","));
+    Serial.print(s2_command_PWM);
+    Serial.print(F(","));
+    Serial.print(s3_command_PWM);
+    Serial.print(F(","));
+    Serial.print(s4_command_PWM);
+    Serial.print(F(","));
+    Serial.print(s5_command_PWM);
+    Serial.print(F(","));
+    Serial.print(s6_command_PWM);
+    Serial.print(F(","));
+    Serial.print(s7_command_PWM);
+    Serial.print(F(","));
+    Serial.print(s8_command_PWM);
+    Serial.print(F(","));
+    Serial.print(s9_command_PWM);
+    Serial.print(F(","));
+    Serial.print(s10_command_PWM);
+    Serial.print(F(","));
+    Serial.print(s11_command_PWM);
+
+    Serial.print(F(","));
+    Serial.print(m1_command_PWM);
+    Serial.print(F(","));
+    Serial.print(m2_command_PWM);
+    Serial.print(F(","));
+    Serial.print(m3_command_PWM);
+    Serial.print(F(","));
+    Serial.print(m4_command_PWM);
+    Serial.print(F(","));
+    Serial.print(m5_command_PWM);
+    Serial.print(F(","));
+    Serial.print(m6_command_PWM);
+
+    Serial.print(F(","));
+    Serial.print(roll_PID);
+    Serial.print(F(","));
+    Serial.print(pitch_PID);
+    Serial.print(F(","));
+    Serial.print(yaw_PID);
+
+    Serial.print(F(","));
+    Serial.print(q0);
+    Serial.print(F(","));
+    Serial.print(q1);
+    Serial.print(F(","));
+    Serial.print(q2);
+    Serial.print(F(","));
+    Serial.print(q3);
+
+    Serial.print(F(","));
+    Serial.print(roll_IMU);
+    Serial.print(F(","));
+    Serial.print(pitch_IMU);
+    Serial.print(F(","));
+    Serial.print(yaw_IMU);
+
+    Serial.print(F(","));
+    Serial.print(GyroX);
+    Serial.print(F(","));
+    Serial.print(GyroY);
+    Serial.print(F(","));
+    Serial.print(GyroZ);
+
+    Serial.print(F(","));
+    Serial.print(thro_des);
+    Serial.print(F(","));
+    Serial.print(roll_des);
+    Serial.print(F(","));
+    Serial.print(pitch_des);
+    Serial.print(F(","));
+    Serial.print(yaw_des);
+
+    Serial.print(F(","));
+    Serial.print(channel_1_pwm);
+    Serial.print(F(","));
+    Serial.print(channel_2_pwm);
+    Serial.print(F(","));
+    Serial.print(channel_3_pwm);
+    Serial.print(F(","));
+    Serial.print(channel_4_pwm);
+    Serial.print(F(","));
+    Serial.print(channel_5_pwm);
+    Serial.print(F(","));
+    Serial.print(channel_6_pwm);
+
+    Serial.print(F(","));
+    Serial.print(throttleCutBool);
+    Serial.print(F(","));
+    Serial.print(failSafeBool);
+
+    Serial.println("*/");
+
+  }  
 }
 
 void printLoopRate() {
